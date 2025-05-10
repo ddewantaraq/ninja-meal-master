@@ -1,3 +1,6 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,19 +38,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -96,6 +92,26 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-ninja-dark text-white font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins font-bold;
+  }
+
+  .container {
+    @apply px-4 md:px-8 mx-auto max-w-7xl;
+  }
+
+  .btn-primary {
+    @apply bg-ninja-accent hover:bg-ninja-accent/90 text-white font-medium py-3 px-6 rounded-md transition-all shadow-lg hover:shadow-xl;
+  }
+
+  .section {
+    @apply py-16 md:py-24;
+  }
+
+  .code-block {
+    @apply bg-black/30 p-4 rounded-lg font-mono text-sm overflow-x-auto;
   }
 }
