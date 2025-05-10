@@ -25,7 +25,7 @@ const Hero: React.FC = () => {
               <Button size="lg" className="bg-ninja-accent hover:bg-ninja-accent/90 text-white text-lg">
                 Try ninjaChef now
               </Button>
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 text-lg">
+              <Button size="lg" variant="outline" className="border-ninja-accent text-ninja-accent hover:bg-ninja-accent/10 hover:border-ninja-accent/80 text-lg">
                 Learn more
               </Button>
             </div>
