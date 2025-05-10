@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Knife, BookOpen, Clock, Utensils } from "lucide-react";
+import { ChefHat, BookOpen, Clock, Utensils } from "lucide-react";
 
 const Features: React.FC = () => {
   const features = [
     {
-      icon: <Knife className="w-8 h-8" />,
+      icon: <ChefHat className="w-8 h-8" />,
       title: "Smart ingredient substitution",
       description: "Out of an ingredient? ninjaChef suggests perfect alternatives that maintain the dish's integrity."
     },
