@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ChatInterface from '../components/chat/ChatInterface';
 import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
-import { mastraClient } from '../lib/mastra';
+import { ninjaChefService } from '../api/ninjaChefService';
 import { toast } from "@/hooks/use-toast";
 
 // Define type for meal plan data structure
@@ -57,13 +57,8 @@ const MealPlan: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Get the ninjaChef agent from Mastra
-      const agent = mastraClient.getAgent('ninjaChefAgent');
-      
-      // Send the user's message to the agent
-      const response = await agent.generate({
-        messages: [{ role: 'user', content: message }],
-      });
+      // Use the centralized API service to generate meal plan
+      const response = await ninjaChefService.generateMealPlan(message);
       
       // Parse the response to get meal plan data
       let mealPlanData: MealPlanData;
