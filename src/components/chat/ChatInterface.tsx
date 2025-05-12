@@ -52,7 +52,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </motion.div>
 
       {/* Messages area */}
-      <ScrollArea className="flex-1 p-4" viewportRef={scrollAreaRef}>
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         <div className="space-y-4">
           <AnimatePresence>
             {messages.map((message) => (
