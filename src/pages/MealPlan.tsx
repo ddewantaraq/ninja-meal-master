@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import ChatInterface from '../components/chat/ChatInterface';
 import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
 
@@ -46,10 +47,11 @@ const MealPlan: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: 'Welcome to ninjaChef! Tell me what ingredients you have, and I\'ll create a meal plan for you.',
+      content: 'Welcome to ninjaChef! Tell me what ingredients you have, and I\'ll create a meal plan for you. 🍲',
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = (message: string) => {
     if (!message.trim()) return;
@@ -63,35 +65,71 @@ const MealPlan: React.FC = () => {
 
     setMessages(prev => [...prev, newUserMessage]);
     setInputMessage('');
+    
+    // Show loading state
+    setIsLoading(true);
 
-    // Simulate assistant response (in a real app, this would make an API call)
+    // Simulate assistant response with loading delay
     setTimeout(() => {
+      setIsLoading(false);
       const assistantResponse = {
         id: (Date.now() + 1).toString(),
         role: 'assistant' as const,
-        content: "I've created a meal plan based on your ingredients! Check out the details on the right.",
+        content: "I've created a meal plan based on your ingredients! Check out the details on the right. 🍳",
       };
       setMessages(prev => [...prev, assistantResponse]);
-    }, 1000);
+    }, 1500);
+  };
+
+  // Page transition animation
+  const pageVariants = {
+    initial: { 
+      opacity: 0,
+    },
+    in: { 
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.3 }
+    }
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-ninja-dark text-white">
+    <motion.div 
+      className="flex flex-col lg:flex-row h-screen bg-ninja-dark text-white"
+      initial="initial"
+      animate="in"
+      exit="exit"
+      variants={pageVariants}
+    >
       {/* Left column - Chat interface */}
-      <div className="w-full lg:w-1/3 border-r border-white/10 flex flex-col">
+      <motion.div 
+        className="w-full lg:w-1/3 border-r border-white/10 flex flex-col"
+        initial={{ x: -50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <ChatInterface 
           messages={messages} 
           inputMessage={inputMessage}
           setInputMessage={setInputMessage}
           handleSendMessage={handleSendMessage}
+          isLoading={isLoading}
         />
-      </div>
+      </motion.div>
 
       {/* Right column - Meal plan display */}
-      <div className="w-full lg:w-2/3 overflow-auto">
+      <motion.div 
+        className="w-full lg:w-2/3 overflow-auto"
+        initial={{ x: 50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         <MealPlanDisplay mealPlan={mealPlan} />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

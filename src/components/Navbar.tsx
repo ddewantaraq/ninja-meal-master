@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -16,37 +17,56 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="py-4 md:py-6 border-b border-white/10">
+    <motion.nav 
+      className="py-4 md:py-6 border-b border-white/10"
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="container flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <motion.div 
+          className="flex items-center gap-2"
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 400 }}
+        >
           <span className="text-ninja-accent font-poppins font-bold text-xl">ninja</span>
           <span className="font-poppins font-bold text-xl">Chef</span>
-        </div>
+        </motion.div>
         <div className="hidden md:flex items-center gap-8">
-          <button 
+          <motion.button 
             onClick={() => scrollToSection('how-it-works')} 
             className="text-white/80 hover:text-white transition-colors"
+            whileHover={{ y: -2, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             How It Works
-          </button>
-          <button 
+          </motion.button>
+          <motion.button 
             onClick={() => scrollToSection('features')} 
             className="text-white/80 hover:text-white transition-colors"
+            whileHover={{ y: -2, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Features
-          </button>
-          <button 
+          </motion.button>
+          <motion.button 
             onClick={() => scrollToSection('testimonials')} 
             className="text-white/80 hover:text-white transition-colors"
+            whileHover={{ y: -2, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Testimonials
-          </button>
+          </motion.button>
         </div>
         <Link to="/meal-plan">
-          <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white">Try ninjaChef</Button>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white">
+              Try ninjaChef
+            </Button>
+          </motion.div>
         </Link>
       </div>
-    </nav>
+    </motion.nav>
   );
 };
 
