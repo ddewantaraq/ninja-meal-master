@@ -5,28 +5,7 @@ import ChatInterface from '../components/chat/ChatInterface';
 import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
 import { ninjaChefService } from '../api/ninjaChefService';
 import { toast } from "@/hooks/use-toast";
-
-// Define type for meal plan data structure
-type Menu = {
-  time: string;
-  menu_name: string;
-  steps_to_cook: string;
-};
-
-type DayPlan = {
-  day: number;
-  menus: Menu[];
-};
-
-type MealPlanData = {
-  meal_plan: DayPlan[];
-};
-
-type Message = {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-};
+import { MealPlanData, Message } from '@/types';
 
 const MealPlan: React.FC = () => {
   const [mealPlan, setMealPlan] = useState<MealPlanData>({ meal_plan: [] });
@@ -58,15 +37,17 @@ const MealPlan: React.FC = () => {
 
     try {
       // Use the centralized API service to generate meal plan
-      const response = await ninjaChefService.generateMealPlan(message);
+      const response = await ninjaChefService.startNinjaChefWorkflow(message);
       
       // Parse the response to get meal plan data
       let mealPlanData: MealPlanData;
       try {
         // Attempt to parse JSON from response
-        const jsonMatch = response.text.match(/```json\s*([\s\S]*?)\s*```/);
-        const jsonStr = jsonMatch ? jsonMatch[1] : response.text;
-        mealPlanData = JSON.parse(jsonStr);
+        if (!response?.['generate-meal-plan']?.['output']) {
+          mealPlanData = { meal_plan: [] };
+        } else {
+          mealPlanData = response['generate-meal-plan']['output'];
+        }
       } catch (error) {
         console.error('Failed to parse meal plan data:', error);
         toast({
