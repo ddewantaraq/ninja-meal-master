@@ -2,6 +2,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ChefHat } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Link } from "react-router-dom";
 
 const Hero: React.FC = () => {
   return (
@@ -22,9 +24,13 @@ const Hero: React.FC = () => {
               Limited ingredients. Legendary meals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button size="lg" className="bg-ninja-accent hover:bg-ninja-accent/90 text-white text-lg">
-                Try ninjaChef now
-              </Button>
+              <Link to="/meal-plan">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button size="lg" className="bg-ninja-accent hover:bg-ninja-accent/90 text-white text-lg">
+                    Try ninjaChef now
+                  </Button>
+                </motion.div>
+              </Link>
               <Button size="lg" variant="outline" className="border-ninja-accent text-ninja-accent hover:bg-white/20 hover:text-white hover:border-ninja-accent text-lg">
                 Learn more
               </Button>

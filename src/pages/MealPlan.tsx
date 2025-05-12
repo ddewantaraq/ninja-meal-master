@@ -3,36 +3,23 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ChatInterface from '../components/chat/ChatInterface';
 import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
+import { mastraClient } from '../lib/mastra';
+import { toast } from "@/hooks/use-toast";
 
-// Sample meal plan data
-const sampleMealPlan = {
-  meal_plan: [
-    {
-      day: 1,
-      menus: [
-        {
-          time: "breakfast",
-          menu_name: "Spaghetti Breakfast Bowl",
-          steps_to_cook: "1. Boil pasta.\n2. Add sauce.\n3. Top with a poached egg and fresh herbs.",
-        },
-        {
-          time: "lunch",
-          menu_name: "Simple Rice Bowl",
-          steps_to_cook: "1. Rinse rice.\n2. Steam for 20 minutes.\n3. Serve with your choice of protein and vegetables.",
-        },
-      ],
-    },
-    {
-      day: 2,
-      menus: [
-        {
-          time: "breakfast",
-          menu_name: "Fluffy Pancakes",
-          steps_to_cook: "1. Mix batter.\n2. Fry on pan.\n3. Serve with maple syrup and fresh berries.",
-        },
-      ],
-    },
-  ],
+// Define type for meal plan data structure
+type Menu = {
+  time: string;
+  menu_name: string;
+  steps_to_cook: string;
+};
+
+type DayPlan = {
+  day: number;
+  menus: Menu[];
+};
+
+type MealPlanData = {
+  meal_plan: DayPlan[];
 };
 
 type Message = {
@@ -42,7 +29,7 @@ type Message = {
 };
 
 const MealPlan: React.FC = () => {
-  const [mealPlan, setMealPlan] = useState(sampleMealPlan);
+  const [mealPlan, setMealPlan] = useState<MealPlanData>({ meal_plan: [] });
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -53,7 +40,7 @@ const MealPlan: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;
 
     // Add user message
@@ -69,16 +56,65 @@ const MealPlan: React.FC = () => {
     // Show loading state
     setIsLoading(true);
 
-    // Simulate assistant response with loading delay
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // Get the ninjaChef agent from Mastra
+      const agent = mastraClient.getAgent('ninjaChefAgent');
+      
+      // Send the user's message to the agent
+      const response = await agent.generate({
+        messages: [{ role: 'user', content: message }],
+      });
+      
+      // Parse the response to get meal plan data
+      let mealPlanData: MealPlanData;
+      try {
+        // Attempt to parse JSON from response
+        const jsonMatch = response.text.match(/```json\s*([\s\S]*?)\s*```/);
+        const jsonStr = jsonMatch ? jsonMatch[1] : response.text;
+        mealPlanData = JSON.parse(jsonStr);
+      } catch (error) {
+        console.error('Failed to parse meal plan data:', error);
+        toast({
+          title: "Error parsing meal plan",
+          description: "There was an issue with the response format.",
+          variant: "destructive"
+        });
+        
+        // Use empty meal plan as fallback
+        mealPlanData = { meal_plan: [] };
+      }
+
+      // Update meal plan state
+      setMealPlan(mealPlanData);
+      
+      // Add assistant response
       const assistantResponse = {
         id: (Date.now() + 1).toString(),
         role: 'assistant' as const,
         content: "I've created a meal plan based on your ingredients! Check out the details on the right. 🍳",
       };
+      
       setMessages(prev => [...prev, assistantResponse]);
-    }, 1500);
+    } catch (error) {
+      console.error('Error generating meal plan:', error);
+      
+      // Show error in chat
+      const errorMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant' as const,
+        content: "I'm sorry, I encountered an error creating your meal plan. Please try again with different ingredients.",
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+      
+      toast({
+        title: "Connection error",
+        description: "Failed to connect to the ninjaChef service.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Page transition animation
