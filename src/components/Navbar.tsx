@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Navbar: React.FC = () => {
   const scrollToSection = (id: string) => {
@@ -41,7 +42,9 @@ const Navbar: React.FC = () => {
             Testimonials
           </button>
         </div>
-        <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white">Try ninjaChef</Button>
+        <Link to="/meal-plan">
+          <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white">Try ninjaChef</Button>
+        </Link>
       </div>
     </nav>
   );

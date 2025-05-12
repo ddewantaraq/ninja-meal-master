@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Testimonial: React.FC = () => {
   return (
@@ -31,9 +32,11 @@ const Testimonial: React.FC = () => {
 
         <div className="mt-20 text-center animate-fade-in">
           <h3 className="text-2xl md:text-3xl font-bold mb-6">Ready to transform your cooking?</h3>
-          <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white text-lg">
-            Try ninjaChef for Free
-          </Button>
+          <Link to="/meal-plan">
+            <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white text-lg">
+              Try ninjaChef for Free
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
