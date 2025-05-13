@@ -30,9 +30,11 @@ export const ninjaChefService = {
   /**
    * Start a ninjaChef workflow run (React adaptation of Next.js workflow)
    * @param message User's message with ingredients
+   * @param threadId User's session thread ID
+   * @param userId User's session user ID
    * @returns Promise resolving to workflow result
    */
-  startNinjaChefWorkflow: async (message: string) => {
+  startNinjaChefWorkflow: async (message: string, threadId: string, userId: number) => {
     try {
       // Get the workflow
       const workflow = mastraClient.getWorkflow("ninjaChefWorkflow");
@@ -41,10 +43,10 @@ export const ninjaChefService = {
       const createRunResult = await workflow.createRun();
       const runId = createRunResult.runId;
       
-      // Start the workflow with trigger data
+      // Start the workflow with trigger data including threadId and userId
       const result = await workflow.startAsync({
         runId,
-        triggerData: { message: message },
+        triggerData: { message: message, threadId: threadId, userId: userId },
       });
       
       return result.results;

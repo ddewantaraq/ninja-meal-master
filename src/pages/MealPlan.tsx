@@ -6,7 +6,7 @@ import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
 import { ninjaChefService } from '../api/ninjaChefService';
 import { toast } from "@/hooks/use-toast";
 import { MealPlanData, Message } from '@/types';
-import { storage } from '@/utils/storage';
+import { storage, generateUserSession } from '@/utils/storage';
 
 const MealPlan: React.FC = () => {
   const [mealPlan, setMealPlan] = useState<MealPlanData>({ meal_plan: [] });
@@ -19,12 +19,20 @@ const MealPlan: React.FC = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userSession, setUserSession] = useState<{threadId: string, userId: number} | null>(null);
   
   // Load user session if available
   useEffect(() => {
-    const session = storage.getItem('ninjaChef_session');
+    const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
     if (session) {
       console.log('User session loaded:', session);
+      setUserSession(session);
+    } else {
+      // Create a new session if none exists
+      const newSession = generateUserSession();
+      storage.setItem('ninjaChef_session', newSession);
+      setUserSession(newSession);
+      console.log('New user session created:', newSession);
     }
   }, []);
 
@@ -45,8 +53,19 @@ const MealPlan: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Use the centralized API service to generate meal plan
-      const response = await ninjaChefService.startNinjaChefWorkflow(message);
+      // Ensure we have a user session
+      if (!userSession) {
+        const newSession = generateUserSession();
+        storage.setItem('ninjaChef_session', newSession);
+        setUserSession(newSession);
+      }
+      
+      // Use the centralized API service to generate meal plan with session data
+      const response = await ninjaChefService.startNinjaChefWorkflow(
+        message, 
+        userSession?.threadId || crypto.randomUUID(),
+        userSession?.userId || Math.floor(Math.random() * 1000000)
+      );
       
       // Parse the response to get meal plan data
       let mealPlanData: MealPlanData;
