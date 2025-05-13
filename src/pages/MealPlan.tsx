@@ -6,6 +6,7 @@ import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
 import { ninjaChefService } from '../api/ninjaChefService';
 import { toast } from "@/hooks/use-toast";
 import { MealPlanData, Message } from '@/types';
+import { storage } from '@/utils/storage';
 
 const MealPlan: React.FC = () => {
   const [mealPlan, setMealPlan] = useState<MealPlanData>({ meal_plan: [] });
@@ -18,6 +19,14 @@ const MealPlan: React.FC = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Load user session if available
+  useEffect(() => {
+    const session = storage.getItem('ninjaChef_session');
+    if (session) {
+      console.log('User session loaded:', session);
+    }
+  }, []);
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;

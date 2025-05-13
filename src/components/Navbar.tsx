@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { generateUserSession, storage } from '@/utils/storage';
 
 const Navbar: React.FC = () => {
   const scrollToSection = (id: string) => {
@@ -14,6 +15,11 @@ const Navbar: React.FC = () => {
         block: 'start',
       });
     }
+  };
+
+  const handleTryNinjaChef = () => {
+    const userSession = generateUserSession();
+    storage.setItem('ninjaChef_session', userSession);
   };
 
   return (
@@ -58,7 +64,7 @@ const Navbar: React.FC = () => {
             Testimonials
           </motion.button>
         </div>
-        <Link to="/meal-plan">
+        <Link to="/meal-plan" onClick={handleTryNinjaChef}>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button className="bg-ninja-accent hover:bg-ninja-accent/90 text-white">
               Try ninjaChef

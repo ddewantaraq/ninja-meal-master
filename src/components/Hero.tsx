@@ -4,8 +4,14 @@ import { Button } from "@/components/ui/button";
 import { ChefHat } from "lucide-react";
 import { motion } from 'framer-motion';
 import { Link } from "react-router-dom";
+import { generateUserSession, storage } from '@/utils/storage';
 
 const Hero: React.FC = () => {
+  const handleTryNinjaChef = () => {
+    const userSession = generateUserSession();
+    storage.setItem('ninjaChef_session', userSession);
+  };
+
   return (
     <section className="py-16 md:py-28 relative overflow-hidden">
       {/* Background pattern */}
@@ -24,7 +30,7 @@ const Hero: React.FC = () => {
               Limited ingredients. Legendary meals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Link to="/meal-plan">
+              <Link to="/meal-plan" onClick={handleTryNinjaChef}>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button size="lg" className="bg-ninja-accent hover:bg-ninja-accent/90 text-white text-lg">
                     Try ninjaChef now

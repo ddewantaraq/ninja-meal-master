@@ -1,3 +1,4 @@
+
 import { mastraClient } from './mastra';
 
 /**
@@ -33,9 +34,12 @@ export const ninjaChefService = {
    */
   startNinjaChefWorkflow: async (message: string) => {
     try {
-      // Get the workflow and create a run
+      // Get the workflow
       const workflow = mastraClient.getWorkflow("ninjaChefWorkflow");
-      const {runId} = await workflow.createRun();
+      
+      // Create a run and get the runId
+      const createRunResult = await workflow.createRun();
+      const runId = createRunResult.runId;
       
       // Start the workflow with trigger data
       const result = await workflow.startAsync({
