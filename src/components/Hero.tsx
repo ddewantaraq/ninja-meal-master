@@ -4,12 +4,11 @@ import { Button } from "@/components/ui/button";
 import { ChefHat } from "lucide-react";
 import { motion } from 'framer-motion';
 import { Link } from "react-router-dom";
-import { generateUserSession, storage } from '@/utils/storage';
+import { ninjaChefService } from '@/api/ninjaChefService';
 
 const Hero: React.FC = () => {
   const handleTryNinjaChef = () => {
-    const userSession = generateUserSession();
-    storage.setItem('ninjaChef_session', userSession);
+    ninjaChefService.handleTryNinjaChef();
   };
 
   return (

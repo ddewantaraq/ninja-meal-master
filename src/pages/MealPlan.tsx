@@ -23,17 +23,22 @@ const MealPlan: React.FC = () => {
   
   // Load user session if available
   useEffect(() => {
-    const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
-    if (session) {
-      console.log('User session loaded:', session);
-      setUserSession(session);
-    } else {
-      // Create a new session if none exists
-      const newSession = generateUserSession();
-      storage.setItem('ninjaChef_session', newSession);
-      setUserSession(newSession);
-      console.log('New user session created:', newSession);
+    const init = async() => {
+      const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
+      if (session) {
+        console.log('User session loaded:', session);
+        const msgHistory = await ninjaChefService.getMessageHistory(session.threadId);
+        console.log('History chat:', msgHistory);
+        setUserSession(session);
+      } else {
+        // Create a new session if none exists
+        const newSession = generateUserSession();
+        storage.setItem('ninjaChef_session', newSession);
+        setUserSession(newSession);
+        console.log('New user session created:', newSession);
+      }
     }
+    init();
   }, []);
 
   const handleSendMessage = async (message: string) => {

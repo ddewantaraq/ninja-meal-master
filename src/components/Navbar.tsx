@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { generateUserSession, storage } from '@/utils/storage';
+import { ninjaChefService } from '@/api/ninjaChefService';
 
 const Navbar: React.FC = () => {
   const scrollToSection = (id: string) => {
@@ -18,8 +18,7 @@ const Navbar: React.FC = () => {
   };
 
   const handleTryNinjaChef = () => {
-    const userSession = generateUserSession();
-    storage.setItem('ninjaChef_session', userSession);
+    ninjaChefService.handleTryNinjaChef();
   };
 
   return (

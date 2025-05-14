@@ -1,4 +1,5 @@
 
+import { generateUserSession, storage } from '@/utils/storage';
 import { mastraClient } from './mastra';
 
 /**
@@ -53,6 +54,23 @@ export const ninjaChefService = {
     } catch (error) {
       console.error('Error starting ninjaChef workflow:', error);
       throw error;
+    }
+  },
+  getMessageHistory: async (threadId: string) => {
+    try {
+      const thread = mastraClient.getMemoryThread(threadId, "ninjaChefAgent");
+      const details = await thread.getMessages();
+      return details.messages
+    } catch (error) {
+      console.error('Error getting threads:', error);
+      throw error;
+    }
+  },
+  handleTryNinjaChef: () => {
+    const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
+    if (!session) {
+      const userSession = generateUserSession();
+      storage.setItem('ninjaChef_session', userSession);
     }
   }
 };
