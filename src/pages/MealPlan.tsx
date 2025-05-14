@@ -27,9 +27,41 @@ const MealPlan: React.FC = () => {
       const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
       if (session) {
         console.log('User session loaded:', session);
-        const msgHistory = await ninjaChefService.getMessageHistory(session.threadId);
-        console.log('History chat:', msgHistory);
         setUserSession(session);
+        
+        try {
+          // Fetch message history
+          const messageHistory = await ninjaChefService.getMessageHistory(session.threadId);
+          console.log('Message history loaded:', messageHistory);
+          
+          if (messageHistory && Array.isArray(messageHistory)) {
+            // Convert the API message format to our app's message format
+            const formattedMessages: Message[] = messageHistory.map(msg => ({
+              id: msg.id,
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content
+            }));
+            
+            if (formattedMessages.length > 0) {
+              // Prepend welcome message if we have history
+              setMessages([
+                {
+                  id: '1',
+                  role: 'assistant',
+                  content: 'Welcome to ninjaChef! Tell me what ingredients you have, and I\'ll create a meal plan for you. 🍲',
+                },
+                ...formattedMessages
+              ]);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching message history:', error);
+          toast({
+            title: "Couldn't load message history",
+            description: "Previous conversations could not be retrieved.",
+            variant: "destructive"
+          });
+        }
       } else {
         // Create a new session if none exists
         const newSession = generateUserSession();
