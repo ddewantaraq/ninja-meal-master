@@ -1,3 +1,4 @@
+
 import { generateUserSession, storage } from '@/utils/storage';
 import { mastraClient } from './mastra';
 import { ApiMessage } from '@/types';
@@ -66,7 +67,16 @@ export const ninjaChefService = {
     try {
       const thread = mastraClient.getMemoryThread(threadId, "ninjaChefAgent");
       const details = await thread.getMessages();
-      return details.messages;
+      
+      // Convert CoreMessage[] to ApiMessage[] by mapping and ensuring required fields
+      return details.messages.map(msg => ({
+        id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        role: msg.role || 'assistant',
+        content: msg.content || '',
+        type: msg.type,
+        createdAt: msg.createdAt || new Date().toISOString(),
+        threadId: msg.threadId || threadId
+      })) as ApiMessage[];
     } catch (error) {
       console.error('Error getting threads:', error);
       throw error;
