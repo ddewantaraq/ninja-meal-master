@@ -68,15 +68,34 @@ export const ninjaChefService = {
       const thread = mastraClient.getMemoryThread(threadId, "ninjaChefAgent");
       const details = await thread.getMessages();
       
-      // Convert CoreMessage[] to ApiMessage[] by mapping and ensuring required fields
-      return details.messages.map(msg => ({
-        id: msg.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        role: msg.role || 'assistant',
-        content: msg.content || '',
-        type: msg.type,
-        createdAt: msg.createdAt || new Date().toISOString(),
-        threadId: msg.threadId || threadId
-      })) as ApiMessage[];
+      // Safely convert CoreMessage[] to ApiMessage[] with proper type handling
+      return details.messages.map(msg => {
+        // Create a unique ID if none exists
+        const uniqueId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        
+        // Create a properly typed ApiMessage object
+        const apiMessage: ApiMessage = {
+          id: uniqueId,
+          role: typeof msg.role === 'string' ? 
+            (msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'assistant') : 
+            'assistant',
+          content: typeof msg.content === 'string' ? msg.content : '',
+          threadId: threadId
+        };
+        
+        // Add optional fields if they exist in the message
+        if ('type' in msg && msg.type) {
+          apiMessage.type = String(msg.type);
+        }
+        
+        if ('createdAt' in msg && msg.createdAt) {
+          apiMessage.createdAt = String(msg.createdAt);
+        } else {
+          apiMessage.createdAt = new Date().toISOString();
+        }
+        
+        return apiMessage;
+      });
     } catch (error) {
       console.error('Error getting threads:', error);
       throw error;
