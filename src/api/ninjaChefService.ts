@@ -1,7 +1,7 @@
 
 import { generateUserSession, storage } from '@/utils/storage';
 import { mastraClient } from './mastra';
-import { ApiMessage } from '@/types';
+import { MsgHistory } from '@/types';
 
 /**
  * NinjaChef API service for handling meal plan generation
@@ -63,7 +63,7 @@ export const ninjaChefService = {
    * @param threadId Thread ID to fetch messages for
    * @returns Promise resolving to message history array
    */
-  getMessageHistory: async (threadId: string): Promise<ApiMessage[]> => {
+  getMessageHistory: async (threadId: string): Promise<MsgHistory[]> => {
     try {
       const thread = mastraClient.getMemoryThread(threadId, "ninjaChefAgent");
       const details = await thread.getMessages();
@@ -74,8 +74,8 @@ export const ninjaChefService = {
         const uniqueId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         
         // Create a properly typed ApiMessage object
-        const apiMessage: ApiMessage = {
-          id: uniqueId,
+        const apiMessage: MsgHistory = {
+          id: msg['id'] || uniqueId,
           role: typeof msg.role === 'string' ? 
             (msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'assistant') : 
             'assistant',
@@ -101,12 +101,39 @@ export const ninjaChefService = {
       throw error;
     }
   },
-  
+  /**
+   * check user session and create a new one if it doesn't exist
+   * @returns void
+   * @description This function checks if a user session exists in local storage. If it doesn't, it generates a new user session and stores it.
+   */
   handleTryNinjaChef: () => {
     const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
     if (!session) {
       const userSession = generateUserSession();
       storage.setItem('ninjaChef_session', userSession);
+    }
+  },
+  saveMessage: async (message: MsgHistory) => {
+    try {
+      const thread = mastraClient.getMemoryThread(message.threadId, "ninjaChefAgent");
+      const details = await thread.get();
+      await mastraClient.saveMessageToMemory({
+        messages: [
+          {
+            id: message.id,
+            role: message.role === 'user' ? 'user' : 'assistant',
+            content: message.content,
+            type: message.type === 'text' ? 'text' : 'text',
+            createdAt: new Date(),
+            threadId: message.threadId,
+            resourceId: details.resourceId,
+          }
+        ],
+        agentId: 'ninjaChefAgent',
+      });
+    } catch (error) {
+      console.error('Error saving message:', error);
+      throw error;
     }
   }
 };

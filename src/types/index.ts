@@ -26,7 +26,7 @@ export type Message = {
 };
 
 // Define type for API message response
-export interface ApiMessage {
+export interface MsgHistory {
   id: string;
   role: string;
   content: string;

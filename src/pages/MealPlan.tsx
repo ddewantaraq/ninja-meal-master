@@ -5,8 +5,9 @@ import ChatInterface from '../components/chat/ChatInterface';
 import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
 import { ninjaChefService } from '../api/ninjaChefService';
 import { toast } from "@/hooks/use-toast";
-import { MealPlanData, Message, ApiMessage } from '@/types';
+import { MealPlanData, Message, MsgHistory } from '@/types';
 import { storage, generateUserSession } from '@/utils/storage';
+import { threadId } from 'worker_threads';
 
 const MealPlan: React.FC = () => {
   const [mealPlan, setMealPlan] = useState<MealPlanData>({ meal_plan: [] });
@@ -26,17 +27,15 @@ const MealPlan: React.FC = () => {
     const init = async() => {
       const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
       if (session) {
-        console.log('User session loaded:', session);
         setUserSession(session);
         
         try {
           // Fetch message history
           const messageHistory = await ninjaChefService.getMessageHistory(session.threadId);
-          console.log('Message history loaded:', messageHistory);
           
           if (messageHistory && Array.isArray(messageHistory)) {
             // Convert the API message format to our app's message format
-            const formattedMessages: Message[] = messageHistory.map((msg: ApiMessage) => ({
+            const formattedMessages: Message[] = messageHistory.map((msg: MsgHistory) => ({
               id: msg.id || String(Date.now() + Math.random()),
               role: (msg.role === 'user' || msg.role === 'assistant') ? msg.role : 'assistant',
               content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
@@ -53,7 +52,7 @@ const MealPlan: React.FC = () => {
                   role: 'assistant',
                   content: 'Welcome to ninjaChef! Tell me what ingredients you have, and I\'ll create a meal plan for you. 🍲',
                 },
-                ...formattedMessages
+                ...formattedMessages,
               ]);
             }
           }
@@ -137,6 +136,14 @@ const MealPlan: React.FC = () => {
         role: 'assistant' as const,
         content: "I've created a meal plan based on your ingredients! Check out the details on the right. 🍳",
       };
+      const payload: MsgHistory = {
+        id: assistantResponse.id,
+        role: assistantResponse.role,
+        content: assistantResponse.content,
+        type: 'text',
+        threadId: userSession?.threadId
+      }
+      ninjaChefService.saveMessage(payload);
       
       setMessages(prev => [...prev, assistantResponse]);
     } catch (error) {
@@ -148,6 +155,15 @@ const MealPlan: React.FC = () => {
         role: 'assistant' as const,
         content: "I'm sorry, I encountered an error creating your meal plan. Please try again with different ingredients.",
       };
+
+      const payload: MsgHistory = {
+        id: errorMessage.id,
+        role: errorMessage.role,
+        content: errorMessage.content,
+        type: 'text',
+        threadId: userSession?.threadId
+      }
+      ninjaChefService.saveMessage(payload);
       
       setMessages(prev => [...prev, errorMessage]);
       
