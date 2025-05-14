@@ -5,7 +5,7 @@ import ChatInterface from '../components/chat/ChatInterface';
 import MealPlanDisplay from '../components/mealplan/MealPlanDisplay';
 import { ninjaChefService } from '../api/ninjaChefService';
 import { toast } from "@/hooks/use-toast";
-import { MealPlanData, Message } from '@/types';
+import { MealPlanData, Message, ApiMessage } from '@/types';
 import { storage, generateUserSession } from '@/utils/storage';
 
 const MealPlan: React.FC = () => {
@@ -36,10 +36,13 @@ const MealPlan: React.FC = () => {
           
           if (messageHistory && Array.isArray(messageHistory)) {
             // Convert the API message format to our app's message format
-            const formattedMessages: Message[] = messageHistory.map(msg => ({
-              id: msg.id,
-              role: msg.role as 'user' | 'assistant',
-              content: msg.content
+            const formattedMessages: Message[] = messageHistory.map((msg: ApiMessage) => ({
+              id: msg.id || String(Date.now() + Math.random()),
+              role: (msg.role === 'user' || msg.role === 'assistant') ? msg.role : 'assistant',
+              content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+              type: msg.type,
+              createdAt: msg.createdAt,
+              threadId: msg.threadId
             }));
             
             if (formattedMessages.length > 0) {

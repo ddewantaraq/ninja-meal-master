@@ -1,6 +1,6 @@
-
 import { generateUserSession, storage } from '@/utils/storage';
 import { mastraClient } from './mastra';
+import { ApiMessage } from '@/types';
 
 /**
  * NinjaChef API service for handling meal plan generation
@@ -56,16 +56,23 @@ export const ninjaChefService = {
       throw error;
     }
   },
-  getMessageHistory: async (threadId: string) => {
+  
+  /**
+   * Get message history for a thread
+   * @param threadId Thread ID to fetch messages for
+   * @returns Promise resolving to message history array
+   */
+  getMessageHistory: async (threadId: string): Promise<ApiMessage[]> => {
     try {
       const thread = mastraClient.getMemoryThread(threadId, "ninjaChefAgent");
       const details = await thread.getMessages();
-      return details.messages
+      return details.messages;
     } catch (error) {
       console.error('Error getting threads:', error);
       throw error;
     }
   },
+  
   handleTryNinjaChef: () => {
     const session = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
     if (!session) {

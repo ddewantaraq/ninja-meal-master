@@ -1,3 +1,4 @@
+
 // Define type for meal plan data structure
 type Menu = {
   time: string;
@@ -14,8 +15,22 @@ export type MealPlanData = {
   meal_plan: DayPlan[];
 };
 
+// Updated Message type to handle more complex content structures
 export type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  type?: string;
+  createdAt?: string;
+  threadId?: string;
 };
+
+// Define type for API message response
+export interface ApiMessage {
+  id: string;
+  role: string;
+  content: string;
+  type?: string;
+  createdAt?: string;
+  threadId?: string;
+}
