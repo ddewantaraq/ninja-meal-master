@@ -4,6 +4,7 @@ type Menu = {
   time: string;
   menu_name: string;
   steps_to_cook: string;
+  menu_image?: string; // Added this new property as optional since existing data might not have it
 };
 
 type DayPlan = {

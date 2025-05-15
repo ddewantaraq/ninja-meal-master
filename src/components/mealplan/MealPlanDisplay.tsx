@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface Menu {
   time: string;
   menu_name: string;
   steps_to_cook: string;
+  menu_image?: string; // Added optional menu_image property
 }
 
 interface DayPlan {
@@ -111,6 +113,24 @@ const MealPlanDisplay: React.FC<MealPlanProps> = ({ mealPlan }) => {
               >
                 <Card className="bg-white/5 border-white/10 overflow-hidden hover:bg-white/8 transition-colors">
                   <div className="absolute top-0 right-0 w-20 h-20 bg-ninja-accent/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  
+                  {/* Render menu image if available */}
+                  {menu.menu_image && (
+                    <div className="w-full overflow-hidden">
+                      <AspectRatio ratio={16/9} className="bg-muted">
+                        <img 
+                          src={menu.menu_image} 
+                          alt={menu.menu_name}
+                          className="w-full h-full object-cover rounded-t-lg" 
+                          loading="lazy"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "https://placehold.co/600x400/gray/white?text=No+Image";
+                          }}
+                        />
+                      </AspectRatio>
+                    </div>
+                  )}
                   
                   <CardHeader className="relative z-10">
                     <motion.span 
