@@ -1,6 +1,5 @@
-
 import { generateUserSession, storage } from '@/utils/storage';
-import { mastraClient } from './mastra';
+import { mastraClient, safeApiCall } from './mastra';
 import { MsgHistory } from '@/types';
 
 export const NINJA_CHEF_EXTRACT_DATA = 'ninjaChefExtractData';
@@ -16,7 +15,7 @@ export const ninjaChefService = {
    * @returns Generated meal plan data
    */
   generateMealPlan: async (message: string) => {
-    try {
+    return safeApiCall(async () => {
       // Get the ninjaChef agent from Mastra
       const agent = mastraClient.getAgent(NINJA_CHEF_MEAL_PLANNER);
       
@@ -26,10 +25,7 @@ export const ninjaChefService = {
       });
       
       return response;
-    } catch (error) {
-      console.error('Error generating meal plan:', error);
-      throw error;
-    }
+    });
   },
   
   /**
@@ -41,20 +37,22 @@ export const ninjaChefService = {
    */
   startNinjaChefWorkflow: async (message: string, threadId: string, userId: number) => {
     try {
-      // Get the workflow
-      const workflow = mastraClient.getWorkflow("ninjaChefWorkflow");
-      
-      // Create a run and get the runId
-      const createRunResult = await workflow.createRun();
-      const runId = createRunResult.runId;
-      
-      // Start the workflow with trigger data including threadId and userId
-      const result = await workflow.startAsync({
-        runId,
-        triggerData: { message: message, threadId: threadId, userId: userId },
+      return await safeApiCall(async () => {
+        // Get the workflow
+        const workflow = mastraClient.getWorkflow("ninjaChefWorkflow");
+        
+        // Create a run and get the runId
+        const createRunResult = await workflow.createRun();
+        const runId = createRunResult.runId;
+        
+        // Start the workflow with trigger data including threadId and userId
+        const result = await workflow.startAsync({
+          runId,
+          triggerData: { message: message, threadId: threadId, userId: userId },
+        });
+        
+        return result.results;
       });
-      
-      return result.results;
     } catch (error) {
       console.error('Error starting ninjaChef workflow:', error);
       // Return a fallback response when in production without proper API setup
@@ -72,36 +70,38 @@ export const ninjaChefService = {
    */
   getMessageHistory: async (threadId: string): Promise<MsgHistory[]> => {
     try {
-      const thread = mastraClient.getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
-      const details = await thread.getMessages();
-      
-      // Safely convert CoreMessage[] to ApiMessage[] with proper type handling
-      return details.messages.map(msg => {
-        // Create a unique ID if none exists
-        const uniqueId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      return await safeApiCall(async () => {
+        const thread = mastraClient.getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
+        const details = await thread.getMessages();
         
-        // Create a properly typed ApiMessage object
-        const apiMessage: MsgHistory = {
-          id: msg['id'] || uniqueId,
-          role: typeof msg.role === 'string' ? 
-            (msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'assistant') : 
-            'assistant',
-          content: typeof msg.content === 'string' ? msg.content : '',
-          threadId: threadId
-        };
-        
-        // Add optional fields if they exist in the message
-        if ('type' in msg && msg.type) {
-          apiMessage.type = String(msg.type);
-        }
-        
-        if ('createdAt' in msg && msg.createdAt) {
-          apiMessage.createdAt = String(msg.createdAt);
-        } else {
-          apiMessage.createdAt = new Date().toISOString();
-        }
-        
-        return apiMessage;
+        // Safely convert CoreMessage[] to ApiMessage[] with proper type handling
+        return details.messages.map(msg => {
+          // Create a unique ID if none exists
+          const uniqueId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+          
+          // Create a properly typed ApiMessage object
+          const apiMessage: MsgHistory = {
+            id: msg['id'] || uniqueId,
+            role: typeof msg.role === 'string' ? 
+              (msg.role === 'user' || msg.role === 'assistant' ? msg.role : 'assistant') : 
+              'assistant',
+            content: typeof msg.content === 'string' ? msg.content : '',
+            threadId: threadId
+          };
+          
+          // Add optional fields if they exist in the message
+          if ('type' in msg && msg.type) {
+            apiMessage.type = String(msg.type);
+          }
+          
+          if ('createdAt' in msg && msg.createdAt) {
+            apiMessage.createdAt = String(msg.createdAt);
+          } else {
+            apiMessage.createdAt = new Date().toISOString();
+          }
+          
+          return apiMessage;
+        });
       });
     } catch (error) {
       console.error('Error getting threads:', error);
@@ -112,6 +112,7 @@ export const ninjaChefService = {
       throw error;
     }
   },
+  
   /**
    * check user session and create a new one if it doesn't exist
    * @returns void
@@ -124,6 +125,7 @@ export const ninjaChefService = {
       storage.setItem('ninjaChef_session', userSession);
     }
   },
+  
   /**
    * save a message to the memory thread
    * @param message Message object to save
@@ -132,21 +134,23 @@ export const ninjaChefService = {
    */
   saveMessage: async (message: MsgHistory) => {
     try {
-      const thread = mastraClient.getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
-      const details = await thread.get();
-      await mastraClient.saveMessageToMemory({
-        messages: [
-          {
-            id: message.id,
-            role: message.role === 'user' ? 'user' : 'assistant',
-            content: message.content,
-            type: message.type === 'text' ? 'text' : 'text',
-            createdAt: new Date(),
-            threadId: message.threadId,
-            resourceId: details.resourceId,
-          }
-        ],
-        agentId: NINJA_CHEF_EXTRACT_DATA,
+      await safeApiCall(async () => {
+        const thread = mastraClient.getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
+        const details = await thread.get();
+        await mastraClient.saveMessageToMemory({
+          messages: [
+            {
+              id: message.id,
+              role: message.role === 'user' ? 'user' : 'assistant',
+              content: message.content,
+              type: message.type === 'text' ? 'text' : 'text',
+              createdAt: new Date(),
+              threadId: message.threadId,
+              resourceId: details.resourceId,
+            }
+          ],
+          agentId: NINJA_CHEF_EXTRACT_DATA,
+        });
       });
     } catch (error) {
       console.error('Error saving message:', error);
