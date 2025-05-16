@@ -1,5 +1,6 @@
+
 import { generateUserSession, storage } from '@/utils/storage';
-import { mastraClient, safeApiCall } from './mastra';
+import { getMastraClient, safeApiCall } from './mastra';
 import { MsgHistory } from '@/types';
 
 export const NINJA_CHEF_EXTRACT_DATA = 'ninjaChefExtractData';
@@ -17,7 +18,7 @@ export const ninjaChefService = {
   generateMealPlan: async (message: string) => {
     return safeApiCall(async () => {
       // Get the ninjaChef agent from Mastra
-      const agent = mastraClient.getAgent(NINJA_CHEF_MEAL_PLANNER);
+      const agent = getMastraClient().getAgent(NINJA_CHEF_MEAL_PLANNER);
       
       // Send the user's message to the agent
       const response = await agent.generate({
@@ -39,7 +40,7 @@ export const ninjaChefService = {
     try {
       return await safeApiCall(async () => {
         // Get the workflow
-        const workflow = mastraClient.getWorkflow("ninjaChefWorkflow");
+        const workflow = getMastraClient().getWorkflow("ninjaChefWorkflow");
         
         // Create a run and get the runId
         const createRunResult = await workflow.createRun();
@@ -71,7 +72,7 @@ export const ninjaChefService = {
   getMessageHistory: async (threadId: string): Promise<MsgHistory[]> => {
     try {
       return await safeApiCall(async () => {
-        const thread = mastraClient.getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
+        const thread = getMastraClient().getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
         const details = await thread.getMessages();
         
         // Safely convert CoreMessage[] to ApiMessage[] with proper type handling
@@ -135,9 +136,9 @@ export const ninjaChefService = {
   saveMessage: async (message: MsgHistory) => {
     try {
       await safeApiCall(async () => {
-        const thread = mastraClient.getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
+        const thread = getMastraClient().getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
         const details = await thread.get();
-        await mastraClient.saveMessageToMemory({
+        await getMastraClient().saveMessageToMemory({
           messages: [
             {
               id: message.id,
