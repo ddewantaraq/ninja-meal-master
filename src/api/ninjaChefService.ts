@@ -3,6 +3,9 @@ import { generateUserSession, storage } from '@/utils/storage';
 import { mastraClient } from './mastra';
 import { MsgHistory } from '@/types';
 
+export const NINJA_CHEF_EXTRACT_DATA = 'ninjaChefExtractData';
+export const NINJA_CHEF_MEAL_PLANNER = 'ninjaChefMealPlanner';
+
 /**
  * NinjaChef API service for handling meal plan generation
  */
@@ -15,7 +18,7 @@ export const ninjaChefService = {
   generateMealPlan: async (message: string) => {
     try {
       // Get the ninjaChef agent from Mastra
-      const agent = mastraClient.getAgent('ninjaChefAgent');
+      const agent = mastraClient.getAgent(NINJA_CHEF_MEAL_PLANNER);
       
       // Send the user's message to the agent
       const response = await agent.generate({
@@ -65,7 +68,7 @@ export const ninjaChefService = {
    */
   getMessageHistory: async (threadId: string): Promise<MsgHistory[]> => {
     try {
-      const thread = mastraClient.getMemoryThread(threadId, "ninjaChefAgent");
+      const thread = mastraClient.getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
       const details = await thread.getMessages();
       
       // Safely convert CoreMessage[] to ApiMessage[] with proper type handling
@@ -113,9 +116,15 @@ export const ninjaChefService = {
       storage.setItem('ninjaChef_session', userSession);
     }
   },
+  /**
+   * save a message to the memory thread
+   * @param message Message object to save
+   * @returns void
+   * @description This function saves a message to the memory thread using the Mastra client. It retrieves the thread details and saves the message with the appropriate parameters.
+   */
   saveMessage: async (message: MsgHistory) => {
     try {
-      const thread = mastraClient.getMemoryThread(message.threadId, "ninjaChefAgent");
+      const thread = mastraClient.getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
       const details = await thread.get();
       await mastraClient.saveMessageToMemory({
         messages: [
@@ -129,7 +138,7 @@ export const ninjaChefService = {
             resourceId: details.resourceId,
           }
         ],
-        agentId: 'ninjaChefAgent',
+        agentId: NINJA_CHEF_EXTRACT_DATA,
       });
     } catch (error) {
       console.error('Error saving message:', error);
