@@ -4,7 +4,7 @@ import { MastraClient } from '@mastra/client-js';
 // Get environment variable with fallback
 const getMastraUrl = () => {
   // For Vite, environment variables are exposed through import.meta.env
-  return import.meta.env.VITE_MASTRA_API_URL || 'http://localhost:4111';
+  return import.meta.env.VITE_MASTRA_API_URL || 'https://ninja-chef.vercel.app';
 };
 
 // Initialize the client with lazy loading to prevent build timeouts
@@ -54,7 +54,7 @@ export async function safeApiCall<T>(apiCall: () => Promise<T>): Promise<T> {
   } catch (error) {
     console.error("Failed to connect to Mastra API:", error);
     // In production, we'll return a mock response if API URL not set
-    if (import.meta.env.PROD && !import.meta.env.VITE_MASTRA_API_URL) {
+    if (import.meta.env.PROD && !getMastraUrl()) {
       // Return a mock response appropriate for the context
       // This is just a generic response - adjust based on the expected type
       return {
