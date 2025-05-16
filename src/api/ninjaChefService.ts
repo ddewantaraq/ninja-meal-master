@@ -57,6 +57,10 @@ export const ninjaChefService = {
       return result.results;
     } catch (error) {
       console.error('Error starting ninjaChef workflow:', error);
+      // Return a fallback response when in production without proper API setup
+      if (import.meta.env.PROD && !import.meta.env.VITE_MASTRA_API_URL) {
+        return { status: 'fallback', message: 'API not configured for production' };
+      }
       throw error;
     }
   },
@@ -101,6 +105,10 @@ export const ninjaChefService = {
       });
     } catch (error) {
       console.error('Error getting threads:', error);
+      // Return an empty array when in production without proper API setup
+      if (import.meta.env.PROD && !import.meta.env.VITE_MASTRA_API_URL) {
+        return [];
+      }
       throw error;
     }
   },
@@ -142,6 +150,10 @@ export const ninjaChefService = {
       });
     } catch (error) {
       console.error('Error saving message:', error);
+      // Don't throw in production if API not configured
+      if (import.meta.env.PROD && !import.meta.env.VITE_MASTRA_API_URL) {
+        return;
+      }
       throw error;
     }
   }
