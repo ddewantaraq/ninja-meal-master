@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ChatInterface from '../components/chat/ChatInterface';
@@ -30,8 +29,8 @@ const MealPlan: React.FC = () => {
         setUserSession(session);
         
         try {
-          // Fetch message history
-          const messageHistory = await ninjaChefService.getMessageHistory(session.threadId);
+          // Fetch message history with user session
+          const messageHistory = await ninjaChefService.getMessageHistory(session.threadId, session);
           
           if (messageHistory && Array.isArray(messageHistory)) {
             // Convert the API message format to our app's message format
@@ -143,7 +142,8 @@ const MealPlan: React.FC = () => {
         type: 'text',
         threadId: userSession?.threadId
       }
-      ninjaChefService.saveMessage(payload);
+      // Pass user session to saveMessage
+      ninjaChefService.saveMessage(payload, userSession);
       
       setMessages(prev => [...prev, assistantResponse]);
     } catch (error) {
@@ -163,7 +163,8 @@ const MealPlan: React.FC = () => {
         type: 'text',
         threadId: userSession?.threadId
       }
-      ninjaChefService.saveMessage(payload);
+      // Pass user session to saveMessage
+      ninjaChefService.saveMessage(payload, userSession);
       
       setMessages(prev => [...prev, errorMessage]);
       

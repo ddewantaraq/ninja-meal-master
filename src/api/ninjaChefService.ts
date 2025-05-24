@@ -13,12 +13,13 @@ export const ninjaChefService = {
   /**
    * Generate a meal plan based on user ingredients
    * @param message User's message containing ingredient information
+   * @param userSession User session containing threadId and userId
    * @returns Generated meal plan data
    */
-  generateMealPlan: async (message: string) => {
-    return safeApiCall(async () => {
+  generateMealPlan: async (message: string, userSession?: { threadId: string; userId: number }) => {
+    return safeApiCall(async (client) => {
       // Get the ninjaChef agent from Mastra
-      const agent = getMastraClient().getAgent(NINJA_CHEF_MEAL_PLANNER);
+      const agent = client.getAgent(NINJA_CHEF_MEAL_PLANNER);
       
       // Send the user's message to the agent
       const response = await agent.generate({
@@ -26,7 +27,7 @@ export const ninjaChefService = {
       });
       
       return response;
-    });
+    }, userSession);
   },
   
   /**
@@ -38,9 +39,11 @@ export const ninjaChefService = {
    */
   startNinjaChefWorkflow: async (message: string, threadId: string, userId: number) => {
     try {
-      return await safeApiCall(async () => {
+      const userSession = { threadId, userId };
+      
+      return await safeApiCall(async (client) => {
         // Get the workflow
-        const workflow = getMastraClient().getWorkflow("ninjaChefWorkflow");
+        const workflow = client.getWorkflow("ninjaChefWorkflow");
         
         // Create a run and get the runId
         const createRunResult = await workflow.createRun();
@@ -53,7 +56,7 @@ export const ninjaChefService = {
         });
         
         return result.steps;
-      });
+      }, userSession);
     } catch (error) {
       console.error('Error starting ninjaChef workflow:', error);
       // Return a fallback response when in production without proper API setup
@@ -67,12 +70,13 @@ export const ninjaChefService = {
   /**
    * Get message history for a thread
    * @param threadId Thread ID to fetch messages for
+   * @param userSession User session containing threadId and userId
    * @returns Promise resolving to message history array
    */
-  getMessageHistory: async (threadId: string): Promise<MsgHistory[]> => {
+  getMessageHistory: async (threadId: string, userSession?: { threadId: string; userId: number }): Promise<MsgHistory[]> => {
     try {
-      return await safeApiCall(async () => {
-        const thread = getMastraClient().getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
+      return await safeApiCall(async (client) => {
+        const thread = client.getMemoryThread(threadId, NINJA_CHEF_EXTRACT_DATA);
         const details = await thread.getMessages();
         
         // Safely convert CoreMessage[] to ApiMessage[] with proper type handling
@@ -103,7 +107,7 @@ export const ninjaChefService = {
           
           return apiMessage;
         });
-      });
+      }, userSession);
     } catch (error) {
       console.error('Error getting threads:', error);
       // Return an empty array when in production without proper API setup
@@ -130,15 +134,16 @@ export const ninjaChefService = {
   /**
    * save a message to the memory thread
    * @param message Message object to save
+   * @param userSession User session containing threadId and userId
    * @returns void
    * @description This function saves a message to the memory thread using the Mastra client. It retrieves the thread details and saves the message with the appropriate parameters.
    */
-  saveMessage: async (message: MsgHistory) => {
+  saveMessage: async (message: MsgHistory, userSession?: { threadId: string; userId: number }) => {
     try {
-      await safeApiCall(async () => {
-        const thread = getMastraClient().getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
+      await safeApiCall(async (client) => {
+        const thread = client.getMemoryThread(message.threadId, NINJA_CHEF_EXTRACT_DATA);
         const details = await thread.get();
-        await getMastraClient().saveMessageToMemory({
+        await client.saveMessageToMemory({
           messages: [
             {
               id: message.id,
@@ -152,7 +157,7 @@ export const ninjaChefService = {
           ],
           agentId: NINJA_CHEF_EXTRACT_DATA,
         });
-      });
+      }, userSession);
     } catch (error) {
       console.error('Error saving message:', error);
       // Don't throw in production if API not configured
