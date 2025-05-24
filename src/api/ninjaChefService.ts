@@ -49,10 +49,10 @@ export const ninjaChefService = {
         // Start the workflow with trigger data including threadId and userId
         const result = await workflow.startAsync({
           runId,
-          triggerData: { message: message, threadId: threadId, userId: userId },
+          inputData: { message: message }
         });
         
-        return result.results;
+        return result.steps;
       });
     } catch (error) {
       console.error('Error starting ninjaChef workflow:', error);
