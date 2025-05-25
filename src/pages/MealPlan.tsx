@@ -29,8 +29,8 @@ const MealPlan: React.FC = () => {
         setUserSession(session);
         
         try {
-          // Fetch message history with user session
-          const messageHistory = await ninjaChefService.getMessageHistory(session.threadId, session);
+          // Fetch message history without passing user session
+          const messageHistory = await ninjaChefService.getMessageHistory(session.threadId);
           
           if (messageHistory && Array.isArray(messageHistory)) {
             // Convert the API message format to our app's message format
@@ -98,7 +98,7 @@ const MealPlan: React.FC = () => {
         setUserSession(newSession);
       }
       
-      // Use the centralized API service to generate meal plan with session data
+      // Use the centralized API service to generate meal plan without passing session data
       const response = await ninjaChefService.startNinjaChefWorkflow(
         message, 
         userSession?.threadId || crypto.randomUUID(),
@@ -142,8 +142,8 @@ const MealPlan: React.FC = () => {
         type: 'text',
         threadId: userSession?.threadId
       }
-      // Pass user session to saveMessage
-      ninjaChefService.saveMessage(payload, userSession);
+      // Save message without passing user session
+      ninjaChefService.saveMessage(payload);
       
       setMessages(prev => [...prev, assistantResponse]);
     } catch (error) {
@@ -163,8 +163,8 @@ const MealPlan: React.FC = () => {
         type: 'text',
         threadId: userSession?.threadId
       }
-      // Pass user session to saveMessage
-      ninjaChefService.saveMessage(payload, userSession);
+      // Save message without passing user session
+      ninjaChefService.saveMessage(payload);
       
       setMessages(prev => [...prev, errorMessage]);
       

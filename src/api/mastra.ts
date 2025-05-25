@@ -1,5 +1,6 @@
 
 import { MastraClient } from '@mastra/client-js';
+import { storage } from '@/utils/storage';
 
 // Get environment variable with fallback
 const getMastraUrl = () => {
@@ -10,35 +11,31 @@ const getMastraUrl = () => {
 // Initialize the client with lazy loading to prevent build timeouts
 let mastraClientInstance: MastraClient | null = null;
 
-// Get client instance with headers
-export const getMastraClient = (headers?: Record<string, string>): MastraClient => {
-  // Create a new instance with headers if provided, or use cached instance
-  if (headers || !mastraClientInstance) {
-    try {
-      const clientConfig: any = {
-        baseUrl: getMastraUrl(),
+// Get client instance with headers automatically set from localStorage
+export const getMastraClient = (): MastraClient => {
+  try {
+    // Get user session from localStorage to set headers
+    const userSession = storage.getItem<{threadId: string, userId: number}>('ninjaChef_session');
+    
+    const clientConfig: any = {
+      baseUrl: getMastraUrl(),
+    };
+    
+    // Add headers from user session if available
+    if (userSession) {
+      clientConfig.headers = {
+        'x-thread-id': userSession.threadId,
+        'x-user-id': userSession.userId.toString()
       };
-      
-      // Add headers if provided
-      if (headers) {
-        clientConfig.headers = headers;
-      }
-      
-      const client = new MastraClient(clientConfig);
-      
-      // Cache the instance only if no specific headers were provided
-      if (!headers) {
-        mastraClientInstance = client;
-      }
-      
-      return client;
-    } catch (error) {
-      console.error("Failed to initialize Mastra client:", error);
-      // Return a minimal mock client for fallback
-      return createMockClient();
     }
+    
+    const client = new MastraClient(clientConfig);
+    return client;
+  } catch (error) {
+    console.error("Failed to initialize Mastra client:", error);
+    // Return a minimal mock client for fallback
+    return createMockClient();
   }
-  return mastraClientInstance;
 };
 
 // Create a mock client for fallback
@@ -62,18 +59,11 @@ const createMockClient = (): MastraClient => {
 
 // Create a wrapper function for API calls to handle failures gracefully
 export async function safeApiCall<T>(
-  apiCall: (client: MastraClient) => Promise<T>,
-  userSession?: { threadId: string; userId: number }
+  apiCall: (client: MastraClient) => Promise<T>
 ): Promise<T> {
   try {
-    // Create headers from user session if provided
-    const headers = userSession ? {
-      'x-thread-id': userSession.threadId,
-      'x-user-id': userSession.userId.toString()
-    } : undefined;
-    
-    // Get client with headers
-    const client = getMastraClient(headers);
+    // Get client with headers automatically set
+    const client = getMastraClient();
     
     // Execute the provided API call with the client
     return await apiCall(client);
